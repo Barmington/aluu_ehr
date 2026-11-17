@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { FaStaffSnake } from 'react-icons/fa6';
+import { Link } from 'react-router-dom';
 
 export default function LoginPage() {
   const { user, login } = useAuth();
@@ -71,6 +72,10 @@ export default function LoginPage() {
         <button className="btn btn-primary" disabled={busy}>
           {busy ? 'Signing in...' : 'Sign in'}
         </button>
+
+        <p className="auth-switch">
+          New staff member? <Link to="/register">Create an account</Link>
+        </p>
 
         <details className="demo-accounts">
           <summary>Demo accounts</summary>

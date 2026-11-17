@@ -9,6 +9,7 @@ const patientRoutes = require('./routes/patients');
 const triageRoutes = require('./routes/triage');
 const auditRoutes = require('./routes/audit');
 const clinicalRoutes = require('./routes/clinical');
+const registerRoutes = require('./routes/register');
 
 const app = express();
 
@@ -19,6 +20,7 @@ if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
+app.use('/api/auth/register', registerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/triage', triageRoutes);

@@ -1,8 +1,7 @@
 require('dotenv').config();
 const { Pool, types } = require('pg');
 
-// Return DATE columns (OID 1082) as plain 'YYYY-MM-DD' strings so dates of birth
-// are never shifted by time-zone conversion.
+// Return DATE columns as plain 'YYYY-MM-DD' strings (no time-zone shifting).
 types.setTypeParser(1082, value => value);
 
 const pool = new Pool({
@@ -13,17 +12,14 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-module.exports = pool;
-// const pool = new Pool({
-//   connectionString: process.env.DATABASE_URL,
-// });
-// console.log('DB URL:', process.env.DATABASE_URL);
-pool.query('SELECT now()').then(r => console.log('Connected:', r.rows[0]));
-module.exports = pool;
-
 pool.on('error', err => {
   console.error('Unexpected PostgreSQL error', err);
 });
+
+pool
+  .query('SELECT now()')
+  .then(r => console.log('Connected:', r.rows[0]))
+  .catch(err => console.error('Database connection failed:', err.message));
 
 /** Run a function inside a transaction; rolls back on error. */
 async function withTransaction(fn) {

@@ -9,7 +9,7 @@ function Field({ name, label, children, required }) {
   return (
     <label className={message ? 'has-error' : ''}>
       {label}
-      {required && <span className="req"> *</span>}
+      {/* {required && <span className="req"> *</span>} */}
       {children}
       {message && <span className="field-error">{message}</span>}
     </label>
@@ -50,13 +50,13 @@ export default function PatientForm({
       }}
     >
       <ErrorsContext.Provider value={fieldErrors}>
-        <Field name="firstName" label="First name" required>
+        <Field name="firstName" label="First name *" required>
           <input value={form.firstName} onChange={set('firstName')} required />
         </Field>
-        <Field name="lastName" label="Last name" required>
+        <Field name="lastName" label="Last name *" required>
           <input value={form.lastName} onChange={set('lastName')} required />
         </Field>
-        <Field name="dateOfBirth" label="Date of birth" required>
+        <Field name="dateOfBirth" label="Date of birth *" required>
           <input
             type="date"
             max={today}
@@ -65,7 +65,7 @@ export default function PatientForm({
             required
           />
         </Field>
-        <Field name="sex" label="Sex" required>
+        <Field name="sex" label="Sex *" required>
           <select value={form.sex} onChange={set('sex')} required>
             <option value="">Select...</option>
             <option>Female</option>
@@ -74,7 +74,7 @@ export default function PatientForm({
             <option>Unknown</option>
           </select>
         </Field>
-        <Field name="phone" label="Phone number" required>
+        <Field name="phone" label="Phone number *" required>
           <input
             type="tel"
             value={form.phone}

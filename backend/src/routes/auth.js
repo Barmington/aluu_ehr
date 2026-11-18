@@ -16,20 +16,34 @@ const loginSchema = z.object({
 router.post('/login', validate(loginSchema), async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    const { rows } = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+    const { rows } = await db.query('SELECT * FROM users WHERE username = $1', [
+      username,
+    ]);
     const user = rows[0];
 
     // Same message for unknown user / wrong password (no user enumeration)
     const ok = user && (await bcrypt.compare(password, user.password_hash));
-    if (!ok) return res.status(401).json({ error: 'Invalid username or password' });
+    if (!ok)
+      return res.status(401).json({ error: 'Invalid username or password' });
 
-    await audit({ userId: user.id, action: 'LOGIN', entity: 'user', entityId: user.id });
+    await audit({
+      userId: user.id,
+      action: 'LOGIN',
+      entity: 'user',
+      entityId: user.id,
+    });
 
     res.json({
       token: signToken(user),
-      user: { id: user.id, username: user.username, fullName: user.full_name, role: user.role },
+      user: {
+        id: user.id,
+        username: user.username,
+        fullName: user.full_name,
+        role: user.role,
+      },
     });
   } catch (err) {
+    console.error('Login error:', err);
     next(err);
   }
 });

@@ -76,7 +76,7 @@ export default function LoginPage() {
           New staff member? <Link to="/register">Create an account</Link>
         </p>
 
-        <details className="demo-accounts">
+        {/* <details className="demo-accounts">
           <summary>Demo accounts</summary>
           <ul>
             <li>
@@ -91,7 +91,7 @@ export default function LoginPage() {
               <code>admin</code> / <code>Admin#2026</code> (everything)
             </li>
           </ul>
-        </details>
+        </details> */}
       </form>
     </div>
   );

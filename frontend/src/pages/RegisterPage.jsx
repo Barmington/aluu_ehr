@@ -7,10 +7,12 @@ import { api } from '../api.js';
 export default function RegisterPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('registrar');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -19,19 +21,37 @@ export default function RegisterPage() {
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
+
     if (password !== confirmPassword) {
       setError('The passwords do not match.');
       return;
     }
+
     setBusy(true);
+
     try {
       await api.post('/auth/register', {
         fullName: fullName.trim(),
         username: username.trim(),
         password,
+        requestedRole: role,
       });
-      await login(username.trim(), password);
-      navigate('/patients', { replace: true });
+
+      // Registrar accounts can sign in immediately.
+      // Other roles require administrator approval.
+      if (role === 'registrar') {
+        await login(username.trim(), password);
+        navigate('/patients', { replace: true });
+      } else {
+        navigate('/login', {
+          replace: true,
+          state: {
+            message:
+              'Registration successful. Your requested role ' +
+              'requires administrator approval before access.',
+          },
+        });
+      }
     } catch (err) {
       setError(err.message || 'Unable to create your account.');
     } finally {
@@ -45,6 +65,7 @@ export default function RegisterPage() {
         <Link to="/" className="back-home">
           ← Back to home
         </Link>
+
         <div className="login-brand">
           <FaStaffSnake size={38} />
           <div>
@@ -52,11 +73,13 @@ export default function RegisterPage() {
             <p>Create your staff account</p>
           </div>
         </div>
+
         {error && (
           <div className="alert alert-error" role="alert">
             {error}
           </div>
         )}
+
         <label>
           Full name
           <input
@@ -67,6 +90,7 @@ export default function RegisterPage() {
             required
           />
         </label>
+
         <label>
           Username
           <input
@@ -78,6 +102,19 @@ export default function RegisterPage() {
             required
           />
         </label>
+
+        <label>
+          Select Role
+          <select value={role} onChange={e => setRole(e.target.value)} required>
+            <option value="registrar">Registrar</option>
+            <option value="doctor">Doctor</option>
+            <option value="nurse">Nurse</option>
+            <option value="lab_technician">Lab Technician</option>
+            <option value="pharmacist">Pharmacist</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </label>
+
         <label>
           Password
           <input
@@ -90,6 +127,7 @@ export default function RegisterPage() {
           />
           <span className="hint">Use at least 10 characters.</span>
         </label>
+
         <label>
           Confirm password
           <input
@@ -100,16 +138,19 @@ export default function RegisterPage() {
             required
           />
         </label>
+
         <div className="registration-role-note">
           <strong>Account access</strong>
           <p>
-            New registrations receive the standard Registrar role. Contact your
-            system administrator if you need a different level of access.
+            Registrar accounts receive standard access. Other staff roles
+            require administrator approval before accessing the EHR system.
           </p>
         </div>
-        <button className="btn btn-primary" disabled={busy}>
+
+        <button type="submit" className="btn btn-primary" disabled={busy}>
           {busy ? 'Creating account...' : 'Create account'}
         </button>
+
         <p className="auth-switch">
           Already registered? <Link to="/login">Sign in</Link>
         </p>

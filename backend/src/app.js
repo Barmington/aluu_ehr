@@ -10,6 +10,7 @@ const triageRoutes = require('./routes/triage');
 const auditRoutes = require('./routes/audit');
 const clinicalRoutes = require('./routes/clinical');
 const registerRoutes = require('./routes/register');
+const userRoutes = require('./routes/users');
 
 const app = express();
 
@@ -20,12 +21,13 @@ if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-app.use('/api/auth/register', registerRoutes);
+app.use('/api/auth', registerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/triage', triageRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/clinical', clinicalRoutes);
+app.use('/api/users', userRoutes);
 
 app.use('/api', (req, res) =>
   res.status(404).json({ error: 'Endpoint not found' }),

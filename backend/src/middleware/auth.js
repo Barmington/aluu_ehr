@@ -1,6 +1,14 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = () => process.env.JWT_SECRET || 'dev-only-secret-change-me';
+const JWT_SECRET = () => {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
+  return secret;
+};
 
 /** Verifies the Bearer token and attaches req.user = { id, username, role, fullName } */
 function requireAuth(req, res, next) {

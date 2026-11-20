@@ -4,7 +4,7 @@ const { z } = require('zod');
 const db = require('../db');
 const { audit } = require('../audit');
 const { validate } = require('../middleware/validate');
-const { requireAuth, signToken } = require('../middleware/auth');
+const { signToken } = require('../middleware/auth');
 
 const router = express.Router();
 

@@ -21,6 +21,10 @@ export class ApiError extends Error {
 
 async function request(method, path, body) {
   const token = tokenStore.get();
+  if (path === '/users') {
+    console.log('Staff Approvals API request:', method, path);
+    console.log('Token available:', Boolean(token));
+  }
 
   let res;
 

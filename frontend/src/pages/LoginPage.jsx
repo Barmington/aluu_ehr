@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { FaStaffSnake } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 export default function LoginPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -45,6 +46,7 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {location.state?.message && <div className="alert alert-success">{location.state.message}</div>}
         {error && (
           <div className="alert alert-error" role="alert">
             {error}

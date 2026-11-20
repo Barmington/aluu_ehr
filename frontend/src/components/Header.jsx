@@ -61,6 +61,11 @@ function Header() {
           <NavLink to="/clinical" className={navLinkClass}>
             Patient Records
           </NavLink>
+          {user?.role === 'admin' && (
+            <NavLink to="/admin/approvals" className={navLinkClass}>
+              Staff Approvals
+            </NavLink>
+          )}
         </nav>
       </div>
     </header>

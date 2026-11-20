@@ -7,6 +7,7 @@ import PatientsPage from './pages/PatientsPage.jsx';
 import TriagePage from './pages/TriagePage.jsx';
 import ClinicalModulesPage from './pages/ClinicalModulesPage.jsx';
 import Header from './components/Header.jsx';
+import AdminApprovalsPage from './pages/AdminApprovalsPage.jsx';
 
 function Layout() {
   const { user } = useAuth();
@@ -21,6 +22,15 @@ function Layout() {
     </div>
   );
 }
+function AdminOnly({ children }) {
+  const { user } = useAuth();
+
+  if (user?.role !== 'admin') {
+    return <Navigate to="/patients" replace />;
+  }
+
+  return children;
+}
 
 export default function App() {
   return (
@@ -33,6 +43,14 @@ export default function App() {
         <Route path="/patients/:id" element={<PatientsPage />} />
         <Route path="/triage" element={<TriagePage />} />
         <Route path="/clinical" element={<ClinicalModulesPage />} />
+        <Route
+          path="/admin/approvals"
+          element={
+            <AdminOnly>
+              <AdminApprovalsPage />
+            </AdminOnly>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

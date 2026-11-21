@@ -35,44 +35,89 @@ router.get('/', async (req, res, next) => {
 router.put('/:id/approval', async (req, res, next) => {
   const id = Number(req.params.id);
   const { decision, role } = req.body || {};
+
   if (
     !Number.isSafeInteger(id) ||
     id <= 0 ||
     !['approved', 'rejected'].includes(decision) ||
     (decision === 'approved' && !ROLES.includes(role))
-  )
-    return res.status(400).json({ error: 'Invalid approval decision or role' });
-  if (id === Number(req.user.id))
-    return res
-      .status(400)
-      .json({ error: 'Cannot approve or reject your own account' });
+  ) {
+    return res.status(400).json({
+      error: 'Invalid approval decision or role',
+    });
+  }
+
+  if (id === Number(req.user.id)) {
+    return res.status(400).json({
+      error: 'Cannot approve or reject your own account',
+    });
+  }
+
   try {
     const result = await db.withTransaction(async client => {
       const { rows } = await client.query(
-        'SELECT id,approval_status FROM users WHERE id=$1 FOR UPDATE',
+        'SELECT id, approval_status FROM users WHERE id=$1 FOR UPDATE',
         [id],
       );
-      if (!rows.length) return { status: 404, error: 'User not found' };
-      if (rows[0].approval_status !== 'pending')
-        return { status: 409, error: 'Account has already been reviewed' };
+
+      if (!rows.length) {
+        return { status: 404, error: 'User not found' };
+      }
+
+      if (rows[0].approval_status !== 'pending') {
+        return {
+          status: 409,
+          error: 'Account has already been reviewed',
+        };
+      }
+
       const { rows: updated } = await client.query(
-        `UPDATE users SET approval_status=$1,role=CASE WHEN $1='approved' THEN $2 ELSE role END,approved_by=CASE WHEN $1='approved' THEN $3 ELSE NULL END,approved_at=CASE WHEN $1='approved' THEN now() ELSE NULL END,rejected_at=CASE WHEN $1='rejected' THEN now() ELSE NULL END WHERE id=$4 RETURNING id,username,role,approval_status`,
+        `UPDATE users
+         SET
+           approval_status = $1::text,
+           role = CASE
+             WHEN $1::text = 'approved' THEN $2
+             ELSE role
+           END,
+           approved_by = CASE
+             WHEN $1::text = 'approved' THEN $3
+             ELSE NULL
+           END,
+           approved_at = CASE
+             WHEN $1::text = 'approved' THEN now()
+             ELSE NULL
+           END,
+           rejected_at = CASE
+             WHEN $1::text = 'rejected' THEN now()
+             ELSE NULL
+           END
+         WHERE id = $4
+         RETURNING id, username, role, approval_status`,
         [decision, role || null, req.user.id, id],
       );
+
       await audit(
         {
           userId: req.user.id,
           action: decision === 'approved' ? 'APPROVE_USER' : 'REJECT_USER',
           entity: 'user',
           entityId: id,
-          details: { role: decision === 'approved' ? role : null },
+          details: {
+            role: decision === 'approved' ? role : null,
+          },
         },
         client,
       );
+
       return { user: updated[0] };
     });
-    if (result.error)
-      return res.status(result.status).json({ error: result.error });
+
+    if (result.error) {
+      return res.status(result.status).json({
+        error: result.error,
+      });
+    }
+
     res.json(result.user);
   } catch (err) {
     next(err);

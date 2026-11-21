@@ -16,7 +16,6 @@ export default function AdminApprovalsPage() {
   async function load() {
     try {
       const list = await api.get('/users');
-      console.log('USERS API RESPONSE:', list);
       setUsers(list);
       setRolesById(old =>
         Object.fromEntries(
@@ -47,7 +46,6 @@ export default function AdminApprovalsPage() {
   }
   return (
     <div className="card">
-      <h2 style={{ color: 'red' }}>STAFF APPROVALS TEST</h2>
       <h2>Staff approvals</h2>
       {error && <div className="alert alert-error">{error}</div>}
       {users

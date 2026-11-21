@@ -198,7 +198,7 @@ export default function ClinicalModulesPage() {
       </div>
       {error && <div className="alert alert-error">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
-      {patient ? (
+      {patientId ? (
         <form className="module-form" onSubmit={submit}>
           {tab === 'Notes' && (
             <>

@@ -73,26 +73,30 @@ router.put('/:id/approval', async (req, res, next) => {
 
       const { rows: updated } = await client.query(
         `UPDATE users
-         SET
-           approval_status = $1::text,
-           role = CASE
-             WHEN $1::text = 'approved' THEN $2
-             ELSE role
-           END,
-           approved_by = CASE
-             WHEN $1::text = 'approved' THEN $3
-             ELSE NULL
-           END,
-           approved_at = CASE
-             WHEN $1::text = 'approved' THEN now()
-             ELSE NULL
-           END,
-           rejected_at = CASE
-             WHEN $1::text = 'rejected' THEN now()
-             ELSE NULL
-           END
-         WHERE id = $4
-         RETURNING id, username, role, approval_status`,
+   SET
+     approval_status = $1::varchar,
+     role = CASE
+       WHEN $1::varchar = 'approved'
+       THEN $2::varchar
+       ELSE role
+     END,
+     approved_by = CASE
+       WHEN $1::varchar = 'approved'
+       THEN $3::integer
+       ELSE NULL
+     END,
+     approved_at = CASE
+       WHEN $1::varchar = 'approved'
+       THEN now()
+       ELSE NULL
+     END,
+     rejected_at = CASE
+       WHEN $1::varchar = 'rejected'
+       THEN now()
+       ELSE NULL
+     END
+   WHERE id = $4::integer
+   RETURNING id, username, role, approval_status`,
         [decision, role || null, req.user.id, id],
       );
 

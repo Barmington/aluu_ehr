@@ -6,6 +6,10 @@ const tabs = ['Notes', 'Laboratory', 'Prescriptions', 'Appointments'];
 export default function ClinicalModulesPage() {
   const [params] = useSearchParams();
   const [patientId, setPatientId] = useState(params.get('patientId') || '');
+  const [search, setSearch] = useState('');
+  const [patients, setPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [searching, setSearching] = useState(false);
   const [tab, setTab] = useState('Notes');
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
@@ -14,6 +18,40 @@ export default function ClinicalModulesPage() {
   const [form, setForm] = useState({ noteType: 'Progress' });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const base = '/clinical';
+  async function searchPatients(e) {
+    e.preventDefault();
+
+    if (search.trim().length < 2) {
+      setError('Enter at least 2 characters.');
+      return;
+    }
+
+    setSearching(true);
+    setError('');
+    setPatients([]);
+
+    try {
+      const data = await api.get(
+        `/patients/search?q=${encodeURIComponent(search.trim())}`,
+      );
+
+      setPatients(data.results || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function selectPatient(patient) {
+    setPatientId(String(patient.id));
+    setSelectedPatient(patient);
+    setPatients([]);
+    setSearch('');
+    setItems([]);
+    setMessage('');
+    setForm({ noteType: 'Progress' });
+  }
   async function load() {
     if (tab === 'Appointments' && !patientId) {
       try {
@@ -95,19 +133,55 @@ export default function ClinicalModulesPage() {
     <div className="card clinical-page">
       <h2>Clinical records and appointments</h2>
       <p className="hint">
-        Enter the internal patient database ID shown in the patient profile.
+        Search for a patient using their patient number or name. Select the
+        correct patient before viewing or recording clinical information.
         Clinical entries must be recorded and verified by authorised health
         personnel.
       </p>
-      <label className="field">
-        Patient database ID
-        <input
-          value={patientId}
-          onChange={e => setPatientId(e.target.value)}
-          placeholder="e.g. 12"
-          inputMode="numeric"
-        />
-      </label>
+      <div className="patient-search">
+        <form onSubmit={searchPatients}>
+          <label className="field">
+            Search patient by number or name
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="e.g. PT-1001 or Faith Nma"
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={searching || search.trim().length < 2}
+          >
+            {searching ? 'Searching…' : 'Search patient'}
+          </button>
+        </form>
+
+        {patients.length > 0 && (
+          <div className="module-list">
+            {patients.map(patient => (
+              <button
+                key={patient.id}
+                type="button"
+                className="btn"
+                onClick={() => selectPatient(patient)}
+              >
+                {patient.firstName} {patient.lastName}
+                {' — '}
+                {patient.patientNumber}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {selectedPatient && (
+          <div className="alert alert-success">
+            Selected patient: {selectedPatient.firstName}{' '}
+            {selectedPatient.lastName} ({selectedPatient.patientNumber})
+          </div>
+        )}
+      </div>
       <div className="module-tabs">
         {tabs.map(t => (
           <button
@@ -124,7 +198,7 @@ export default function ClinicalModulesPage() {
       </div>
       {error && <div className="alert alert-error">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
-      {tab !== 'Appointments' || patientId ? (
+      {patient ? (
         <form className="module-form" onSubmit={submit}>
           {tab === 'Notes' && (
             <>
@@ -217,7 +291,9 @@ export default function ClinicalModulesPage() {
           </button>
         </form>
       ) : (
-        <p className="muted">Select a patient ID to schedule an appointment.</p>
+        <p className="muted">
+          Search for and select a patient to view or create clinical records.
+        </p>
       )}
       <h3>Saved {tab.toLowerCase()}</h3>
       {items.length === 0 ? (
